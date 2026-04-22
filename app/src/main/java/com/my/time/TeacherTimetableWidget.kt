@@ -99,40 +99,40 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             return when {
                 height <= 120 || width <= 150 -> WidgetUi(
                     mode = Mode.SMALL,
-                    rootPaddingH = 10,
-                    rootPaddingV = 8,
-                    teacherSizeSp = 16f,
-                    headerSizeSp = 11f,
-                    periodSizeSp = 11f,
-                    subjectSizeSp = 13f,
+                    rootPaddingH = 6,
+                    rootPaddingV = 4,
+                    teacherSizeSp = 15f,
+                    headerSizeSp = 10f,
+                    periodSizeSp = 10f,
+                    subjectSizeSp = 12f,
                     classSizeSp = 0f,
-                    periodWidthDp = 36,
+                    periodWidthDp = 30,
                     showClass = false,
                     maxRows = 2
                 )
                 height <= 190 || width <= 240 -> WidgetUi(
                     mode = Mode.MEDIUM,
-                    rootPaddingH = 12,
-                    rootPaddingV = 10,
-                    teacherSizeSp = 15f,
+                    rootPaddingH = 8,
+                    rootPaddingV = 6,
+                    teacherSizeSp = 15.5f,
                     headerSizeSp = 11f,
                     periodSizeSp = 10f,
                     subjectSizeSp = 12f,
                     classSizeSp = 10f,
-                    periodWidthDp = 34,
+                    periodWidthDp = 30,
                     showClass = true,
                     maxRows = 4
                 )
                 else -> WidgetUi(
                     mode = Mode.LARGE,
-                    rootPaddingH = 12,
-                    rootPaddingV = 10,
-                    teacherSizeSp = 15f,
+                    rootPaddingH = 8,
+                    rootPaddingV = 6,
+                    teacherSizeSp = 15.5f,
                     headerSizeSp = 11f,
                     periodSizeSp = 10f,
-                    subjectSizeSp = 11f,
+                    subjectSizeSp = 12f,
                     classSizeSp = 10f,
-                    periodWidthDp = 34,
+                    periodWidthDp = 30,
                     showClass = true,
                     maxRows = 7
                 )

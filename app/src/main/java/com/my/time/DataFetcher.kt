@@ -33,50 +33,43 @@ object DataFetcher {
             inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
         }
 
-        val start = raw.indexOf('{')
-        val end = raw.lastIndexOf('}')
-        require(start >= 0 && end > start) {
-            "Invalid gviz response (len=${raw.length}, head=${raw.take(60)})"
-        }
-        val json = JSONObject(raw.substring(start, end + 1))
+        val json = JSONObject(extractJsonPayload(raw))
         val table = json.getJSONObject("table")
         val cols = table.getJSONArray("cols")
         val rows = table.getJSONArray("rows")
 
         val idx = mutableMapOf<String, Int>()
         for (i in 0 until cols.length()) {
-            val label = cols.getJSONObject(i).optString("label").trim()
+            val col = cols.optJSONObject(i) ?: continue
+            val label = col.optString("label").trim()
+            val id = col.optString("id").trim()
             if (label.isNotEmpty()) idx[label] = i
+            if (id.isNotEmpty()) idx[id] = i
         }
-        val iG = idx["학년"] ?: -1; val iB = idx["반"] ?: -1
-        val iD = idx["요일"] ?: -1; val iP = idx["교시"] ?: -1
-        val iS = idx["과목"] ?: -1; val iT = idx["교사"] ?: -1
-        val iL = idx["슬롯"] ?: -1
+        val iG = colIndex(idx, "학년", "grade")
+        val iB = colIndex(idx, "반", "ban", "class")
+        val iD = colIndex(idx, "요일", "day")
+        val iP = colIndex(idx, "교시", "period")
+        val iS = colIndex(idx, "과목", "교과", "subject")
+        val iT = colIndex(idx, "교사", "선생님", "teacher")
+        val iL = colIndex(idx, "슬롯", "slot")
 
         val list = mutableListOf<Entry>()
         for (r in 0 until rows.length()) {
-            val c = rows.getJSONObject(r).optJSONArray("c") ?: continue
+            val c = rows.optJSONObject(r)?.optJSONArray("c") ?: continue
 
-            fun cell(i: Int): String {
-                if (i < 0 || i >= c.length()) return ""
-                val o = c.optJSONObject(i) ?: return ""
-                val f = o.optString("f", "").trim()
-                if (f.isNotEmpty() && f != "null") return f
-                return o.opt("v")?.toString()?.trim().orEmpty()
-            }
+            val grade = parseIntCell(c, iG) ?: continue
+            val ban = parseIntCell(c, iB) ?: continue
 
-            val grade = cell(iG).toIntOrNull() ?: continue
-            val ban = cell(iB).toIntOrNull() ?: continue
-
-            val day = cell(iD)
+            val day = normalizeDay(cell(c, iD))
             if (day.isEmpty()) continue
 
-            val period = cell(iP).toIntOrNull() ?: continue
+            val period = parseIntCell(c, iP) ?: continue
 
-            val subject = cell(iS)
+            val subject = cell(c, iS)
             if (subject.isEmpty()) continue
 
-            list += Entry(grade, ban, day, period, subject, cell(iT), cell(iL))
+            list += Entry(grade, ban, day, period, subject, cell(c, iT), cell(c, iL))
         }
 
         cache = list
@@ -90,4 +83,57 @@ object DataFetcher {
     fun teacherToday(teacher: String, dayLabel: String): List<Entry> =
         fetchAll().filter { it.teacher == teacher && it.day == dayLabel }
             .sortedBy { it.period }
+
+    private fun extractJsonPayload(raw: String): String {
+        val startToken = "google.visualization.Query.setResponse("
+        val start = raw.indexOf(startToken)
+        if (start >= 0) {
+            val contentStart = start + startToken.length
+            val end = raw.lastIndexOf(");")
+            if (end > contentStart) return raw.substring(contentStart, end).trim()
+        }
+
+        val fallbackStart = raw.indexOf('{')
+        val fallbackEnd = raw.lastIndexOf('}')
+        require(fallbackStart >= 0 && fallbackEnd > fallbackStart) {
+            "Invalid gviz response (len=${raw.length}, head=${raw.take(120)})"
+        }
+        return raw.substring(fallbackStart, fallbackEnd + 1)
+    }
+
+    private fun cell(cells: org.json.JSONArray, index: Int): String {
+        if (index < 0 || index >= cells.length()) return ""
+        val obj = cells.optJSONObject(index) ?: return ""
+
+        val formatted = obj.optString("f", "").trim()
+        if (formatted.isNotEmpty() && formatted != "null") return formatted
+
+        val value = obj.opt("v") ?: return ""
+        return if (value == JSONObject.NULL) "" else value.toString().trim()
+    }
+
+    private fun parseIntCell(cells: org.json.JSONArray, index: Int): Int? {
+        val raw = cell(cells, index).replace(",", "").trim()
+        if (raw.isEmpty()) return null
+        return raw.toIntOrNull()
+            ?: raw.toDoubleOrNull()?.toInt()
+    }
+
+    private fun normalizeDay(value: String): String {
+        return when (value.trim()) {
+            "월", "월요일" -> "월"
+            "화", "화요일" -> "화"
+            "수", "수요일" -> "수"
+            "목", "목요일" -> "목"
+            "금", "금요일" -> "금"
+            else -> value.trim()
+        }
+    }
+
+    private fun colIndex(indexMap: Map<String, Int>, vararg candidates: String): Int {
+        for (candidate in candidates) {
+            indexMap[candidate]?.let { return it }
+        }
+        return -1
+    }
 }
