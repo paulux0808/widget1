@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
+    android:background="@drawable/widget_bg"
     android:paddingStart="12dp"
     android:paddingTop="10dp"
     android:paddingEnd="12dp"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:textSize="15sp"
         android:textStyle="bold"
-        android:textColor="#0F172A"
+        android:textColor="#111827"
         android:maxLines="1"
         android:ellipsize="end"
         android:paddingBottom="3dp" />
@@ -26,10 +26,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="11sp"
-        android:textColor="#64748B"
+        android:textColor="#475569"
         android:maxLines="1"
         android:ellipsize="end"
-        android:paddingBottom="6dp" />
+        android:paddingBottom="8dp" />
+
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DCE6FF"
+        android:layout_marginBottom="6dp" />
 
     <LinearLayout
         android:id="@+id/schedule_container"
@@ -51,7 +59,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -61,7 +69,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -70,10 +78,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -90,7 +104,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -100,7 +114,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -109,10 +123,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -129,7 +149,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -139,7 +159,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -148,10 +168,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -168,7 +194,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -178,7 +204,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -187,10 +213,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -207,7 +239,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -217,7 +249,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -226,10 +258,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -246,7 +284,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -256,7 +294,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -265,10 +303,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -285,7 +329,7 @@
                 android:layout_width="34dp"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#64748B"
+                android:textColor="#334155"
                 android:textStyle="bold" />
 
             <TextView
@@ -295,7 +339,7 @@
                 android:layout_weight="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="#111827"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -304,10 +348,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:textColor="#3B82F6"
+                android:textColor="#1D4ED8"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:background="@drawable/class_badge_bg"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
 
     </LinearLayout>
