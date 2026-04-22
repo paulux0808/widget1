@@ -72,7 +72,7 @@ object DataFetcher {
             if (day.isEmpty()) continue
 
             val period = cell(iP).toIntOrNull() ?: continue
-        
+
             val subject = cell(iS)
             if (subject.isEmpty()) continue
 

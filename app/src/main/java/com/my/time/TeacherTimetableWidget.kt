@@ -43,24 +43,24 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                 .getString(keyFor(id), null)
 
             if (teacher.isNullOrBlank()) {
-                mgr.updateAppWidget(id, errorViews(ctx, "교사 미설정"))
+                mgr.updateAppWidget(id, errorViews(ctx, id, "선생님 미설정", "눌러서 설정"))
                 return
             }
 
-            mgr.updateAppWidget(id, errorViews(ctx, "$teacher · 불러오는 중…"))
+            mgr.updateAppWidget(id, errorViews(ctx, id, teacher, "불러오는 중…"))
 
             scope.launch {
                 try {
                     val day = todayLabel()
                     val entries = DataFetcher.teacherToday(teacher, day)
-                    val views = buildViews(ctx, teacher, day, entries)
+                    val views = buildViews(ctx, teacher, day, entries, id)
                     withContext(Dispatchers.Main) { mgr.updateAppWidget(id, views) }
                 } catch (e: Exception) {
                     Log.e("TeacherWidget", "update failed: ${e.message}", e)
                     withContext(Dispatchers.Main) {
                         mgr.updateAppWidget(
                             id,
-                            errorViews(ctx, "로드 실패: ${e.message?.take(40)}")
+                            errorViews(ctx, id, teacher, "로드 실패")
                         )
                     }
                 }
@@ -71,20 +71,22 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             ctx: Context,
             teacher: String,
             day: String,
-            entries: List<DataFetcher.Entry>
+            entries: List<DataFetcher.Entry>,
+            widgetId: Int
         ): RemoteViews {
             val v = RemoteViews(ctx.packageName, R.layout.widget_layout)
             val dayName = when (day) {
                 "월" -> "월요일"; "화" -> "화요일"; "수" -> "수요일"
                 "목" -> "목요일"; "금" -> "금요일"; else -> day
             }
-            val header = if (entries.isEmpty()) "$teacher · $dayName (수업 없음)"
-            else "$teacher · $dayName (${entries.size}시간)"
-            v.setTextViewText(R.id.widget_header, header)
+
+            v.setTextViewText(R.id.teacher_name, teacher)
+            val summary = if (entries.isEmpty()) "$dayName · 수업 없음" else "$dayName · ${entries.size}시간"
+            v.setTextViewText(R.id.widget_header, summary)
 
             val res = ctx.resources
             val pkg = ctx.packageName
-            for (p in 1..10) {
+            for (p in 1..7) {
                 val rowId = res.getIdentifier("row_p$p", "id", pkg)
                 val periodId = res.getIdentifier("period_p$p", "id", pkg)
                 val subjectId = res.getIdentifier("subject_p$p", "id", pkg)
@@ -100,7 +102,19 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                 }
             }
 
-            // 헤더 탭하면 전체 위젯 수동 새로고침
+            val openConfigIntent = Intent(ctx, ConfigActivity::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val configPi = PendingIntent.getActivity(
+                ctx,
+                widgetId,
+                openConfigIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            v.setOnClickPendingIntent(R.id.teacher_name, configPi)
+
             val refreshIntent = Intent(ctx, TeacherTimetableWidget::class.java).apply {
                 action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                 putExtra(
@@ -110,21 +124,37 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                     )
                 )
             }
-            val pi = PendingIntent.getBroadcast(
-                ctx, 0, refreshIntent,
+            val refreshPi = PendingIntent.getBroadcast(
+                ctx,
+                widgetId,
+                refreshIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            v.setOnClickPendingIntent(R.id.widget_header, pi)
+            v.setOnClickPendingIntent(R.id.widget_header, refreshPi)
             return v
         }
 
-        private fun errorViews(ctx: Context, msg: String): RemoteViews {
+        private fun errorViews(ctx: Context, widgetId: Int, teacherLabel: String, msg: String): RemoteViews {
             val v = RemoteViews(ctx.packageName, R.layout.widget_layout)
+            v.setTextViewText(R.id.teacher_name, teacherLabel)
             v.setTextViewText(R.id.widget_header, msg)
-            for (p in 1..10) {
+            for (p in 1..7) {
                 val rowId = ctx.resources.getIdentifier("row_p$p", "id", ctx.packageName)
                 v.setViewVisibility(rowId, View.GONE)
             }
+
+            val openConfigIntent = Intent(ctx, ConfigActivity::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val configPi = PendingIntent.getActivity(
+                ctx,
+                widgetId,
+                openConfigIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            v.setOnClickPendingIntent(R.id.teacher_name, configPi)
             return v
         }
 

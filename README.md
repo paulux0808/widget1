@@ -62,3 +62,12 @@ teacher-widget/
 - `DataFetcher.kt`의 `SHEET_ID`: 시트 변경 시 수정
 - `widget_info.xml`의 `updatePeriodMillis`: 자동 갱신 주기
 - `widget_layout.xml`: 위젯 모양 수정
+
+
+## 이번 수정 사항
+
+- 3x2 기본 크기로 조정
+- 최대 7교시까지만 표시
+- 위젯 상단의 선생님 이름 탭 시 설정창 진입
+- 헤더 탭 시 수동 새로고침
+- Kotlin 빌드 오류(`ifEmpty { continue }`) 수정
