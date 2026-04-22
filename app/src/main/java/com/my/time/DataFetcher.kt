@@ -67,9 +67,15 @@ object DataFetcher {
 
             val grade = cell(iG).toIntOrNull() ?: continue
             val ban = cell(iB).toIntOrNull() ?: continue
-            val day = cell(iD).ifEmpty { continue }
+
+            val day = cell(iD)
+            if (day.isEmpty()) continue
+
             val period = cell(iP).toIntOrNull() ?: continue
-            val subject = cell(iS).ifEmpty { continue }
+        
+            val subject = cell(iS)
+            if (subject.isEmpty()) continue
+
             list += Entry(grade, ban, day, period, subject, cell(iT), cell(iL))
         }
 
