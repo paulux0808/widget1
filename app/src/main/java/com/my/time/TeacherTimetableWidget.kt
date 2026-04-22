@@ -6,7 +6,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +28,15 @@ class TeacherTimetableWidget : AppWidgetProvider() {
         for (id in appWidgetIds) updateWidget(context, appWidgetManager, id)
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        updateWidget(context, appWidgetManager, appWidgetId)
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
         appWidgetIds.forEach { prefs.remove(keyFor(it)) }
@@ -38,32 +49,83 @@ class TeacherTimetableWidget : AppWidgetProvider() {
 
         fun keyFor(id: Int) = "teacher_$id"
 
+        private data class WidgetUi(
+            val rootPaddingDp: Int,
+            val teacherSizeSp: Float,
+            val headerSizeSp: Float,
+            val periodSizeSp: Float,
+            val subjectSizeSp: Float,
+            val classSizeSp: Float,
+            val periodWidthDp: Int,
+            val rowTopBottomDp: Int,
+            val showClass: Boolean
+        )
+
         fun updateWidget(ctx: Context, mgr: AppWidgetManager, id: Int) {
             val teacher = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getString(keyFor(id), null)
+            val ui = computeUi(mgr.getAppWidgetOptions(id))
 
             if (teacher.isNullOrBlank()) {
-                mgr.updateAppWidget(id, errorViews(ctx, id, "선생님 미설정", "눌러서 설정"))
+                mgr.updateAppWidget(id, errorViews(ctx, id, ui, "선생님 미설정", "눌러서 설정"))
                 return
             }
 
-            mgr.updateAppWidget(id, errorViews(ctx, id, teacher, "불러오는 중…"))
+            mgr.updateAppWidget(id, errorViews(ctx, id, ui, teacher, "불러오는 중…"))
 
             scope.launch {
                 try {
                     val day = todayLabel()
                     val entries = DataFetcher.teacherToday(teacher, day)
-                    val views = buildViews(ctx, teacher, day, entries, id)
+                    val views = buildViews(ctx, teacher, day, entries, id, ui)
                     withContext(Dispatchers.Main) { mgr.updateAppWidget(id, views) }
                 } catch (e: Exception) {
                     Log.e("TeacherWidget", "update failed: ${e.message}", e)
                     withContext(Dispatchers.Main) {
-                        mgr.updateAppWidget(
-                            id,
-                            errorViews(ctx, id, teacher, "로드 실패")
-                        )
+                        mgr.updateAppWidget(id, errorViews(ctx, id, ui, teacher, "로드 실패"))
                     }
                 }
+            }
+        }
+
+        private fun computeUi(options: Bundle): WidgetUi {
+            val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
+            val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+
+            return when {
+                height <= 130 || width <= 190 -> WidgetUi(
+                    rootPaddingDp = 4,
+                    teacherSizeSp = 11f,
+                    headerSizeSp = 8f,
+                    periodSizeSp = 7f,
+                    subjectSizeSp = 8f,
+                    classSizeSp = 7f,
+                    periodWidthDp = 24,
+                    rowTopBottomDp = 0,
+                    showClass = false
+                )
+                height <= 170 || width <= 250 -> WidgetUi(
+                    rootPaddingDp = 6,
+                    teacherSizeSp = 12f,
+                    headerSizeSp = 9f,
+                    periodSizeSp = 8f,
+                    subjectSizeSp = 9f,
+                    classSizeSp = 8f,
+                    periodWidthDp = 28,
+                    rowTopBottomDp = 1,
+                    showClass = true
+                )
+                else -> WidgetUi(
+                    rootPaddingDp = 8,
+                    teacherSizeSp = 13f,
+                    headerSizeSp = 10f,
+                    periodSizeSp = 9f,
+                    subjectSizeSp = 10f,
+                    classSizeSp = 9f,
+                    periodWidthDp = 32,
+                    rowTopBottomDp = 1,
+                    showClass = true
+                )
             }
         }
 
@@ -72,9 +134,12 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             teacher: String,
             day: String,
             entries: List<DataFetcher.Entry>,
-            widgetId: Int
+            widgetId: Int,
+            ui: WidgetUi
         ): RemoteViews {
             val v = RemoteViews(ctx.packageName, R.layout.widget_layout)
+            applySizing(v, ctx, ui)
+
             val dayName = when (day) {
                 "월" -> "월요일"; "화" -> "화요일"; "수" -> "수요일"
                 "목" -> "목요일"; "금" -> "금요일"; else -> day
@@ -97,6 +162,7 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                     v.setTextViewText(periodId, "${p}교시")
                     v.setTextViewText(subjectId, e.subject)
                     v.setTextViewText(classId, "${e.grade}-${e.ban}")
+                    v.setViewVisibility(classId, if (ui.showClass) View.VISIBLE else View.GONE)
                 } else {
                     v.setViewVisibility(rowId, View.GONE)
                 }
@@ -126,7 +192,7 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             }
             val refreshPi = PendingIntent.getBroadcast(
                 ctx,
-                widgetId,
+                widgetId + 10000,
                 refreshIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
@@ -134,8 +200,15 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             return v
         }
 
-        private fun errorViews(ctx: Context, widgetId: Int, teacherLabel: String, msg: String): RemoteViews {
+        private fun errorViews(
+            ctx: Context,
+            widgetId: Int,
+            ui: WidgetUi,
+            teacherLabel: String,
+            msg: String
+        ): RemoteViews {
             val v = RemoteViews(ctx.packageName, R.layout.widget_layout)
+            applySizing(v, ctx, ui)
             v.setTextViewText(R.id.teacher_name, teacherLabel)
             v.setTextViewText(R.id.widget_header, msg)
             for (p in 1..7) {
@@ -156,6 +229,31 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             )
             v.setOnClickPendingIntent(R.id.teacher_name, configPi)
             return v
+        }
+
+        private fun applySizing(v: RemoteViews, ctx: Context, ui: WidgetUi) {
+            v.setViewPadding(R.id.widget_root, ui.rootPaddingDp, ui.rootPaddingDp, ui.rootPaddingDp, ui.rootPaddingDp)
+            v.setTextViewTextSize(R.id.teacher_name, TypedValue.COMPLEX_UNIT_SP, ui.teacherSizeSp)
+            v.setTextViewTextSize(R.id.widget_header, TypedValue.COMPLEX_UNIT_SP, ui.headerSizeSp)
+
+            val res = ctx.resources
+            val pkg = ctx.packageName
+            for (p in 1..7) {
+                val rowId = res.getIdentifier("row_p$p", "id", pkg)
+                val periodId = res.getIdentifier("period_p$p", "id", pkg)
+                val subjectId = res.getIdentifier("subject_p$p", "id", pkg)
+                val classId = res.getIdentifier("class_p$p", "id", pkg)
+
+                v.setViewPadding(rowId, 0, ui.rowTopBottomDp, 0, ui.rowTopBottomDp)
+                v.setTextViewTextSize(periodId, TypedValue.COMPLEX_UNIT_SP, ui.periodSizeSp)
+                v.setTextViewTextSize(subjectId, TypedValue.COMPLEX_UNIT_SP, ui.subjectSizeSp)
+                v.setTextViewTextSize(classId, TypedValue.COMPLEX_UNIT_SP, ui.classSizeSp)
+                v.setInt(periodId, "setWidth", dpToPx(ctx, ui.periodWidthDp))
+            }
+        }
+
+        private fun dpToPx(ctx: Context, dp: Int): Int {
+            return (dp * ctx.resources.displayMetrics.density).toInt()
         }
 
         private fun todayLabel(): String {
