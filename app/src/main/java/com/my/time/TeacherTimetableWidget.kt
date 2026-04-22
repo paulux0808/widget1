@@ -49,16 +49,20 @@ class TeacherTimetableWidget : AppWidgetProvider() {
 
         fun keyFor(id: Int) = "teacher_$id"
 
+        private enum class Mode { SMALL, MEDIUM, LARGE }
+
         private data class WidgetUi(
-            val rootPaddingDp: Int,
+            val mode: Mode,
+            val rootPaddingH: Int,
+            val rootPaddingV: Int,
             val teacherSizeSp: Float,
             val headerSizeSp: Float,
             val periodSizeSp: Float,
             val subjectSizeSp: Float,
             val classSizeSp: Float,
             val periodWidthDp: Int,
-            val rowTopBottomDp: Int,
-            val showClass: Boolean
+            val showClass: Boolean,
+            val maxRows: Int
         )
 
         fun updateWidget(ctx: Context, mgr: AppWidgetManager, id: Int) {
@@ -89,42 +93,48 @@ class TeacherTimetableWidget : AppWidgetProvider() {
         }
 
         private fun computeUi(options: Bundle): WidgetUi {
-            val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+            val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
+            val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 90)
 
             return when {
-                height <= 130 || width <= 190 -> WidgetUi(
-                    rootPaddingDp = 4,
-                    teacherSizeSp = 11f,
-                    headerSizeSp = 8f,
-                    periodSizeSp = 7f,
-                    subjectSizeSp = 8f,
-                    classSizeSp = 7f,
-                    periodWidthDp = 24,
-                    rowTopBottomDp = 0,
-                    showClass = false
+                height <= 120 || width <= 150 -> WidgetUi(
+                    mode = Mode.SMALL,
+                    rootPaddingH = 10,
+                    rootPaddingV = 8,
+                    teacherSizeSp = 16f,
+                    headerSizeSp = 11f,
+                    periodSizeSp = 11f,
+                    subjectSizeSp = 13f,
+                    classSizeSp = 0f,
+                    periodWidthDp = 36,
+                    showClass = false,
+                    maxRows = 2
                 )
-                height <= 170 || width <= 250 -> WidgetUi(
-                    rootPaddingDp = 6,
-                    teacherSizeSp = 12f,
-                    headerSizeSp = 9f,
-                    periodSizeSp = 8f,
-                    subjectSizeSp = 9f,
-                    classSizeSp = 8f,
-                    periodWidthDp = 28,
-                    rowTopBottomDp = 1,
-                    showClass = true
+                height <= 190 || width <= 240 -> WidgetUi(
+                    mode = Mode.MEDIUM,
+                    rootPaddingH = 12,
+                    rootPaddingV = 10,
+                    teacherSizeSp = 15f,
+                    headerSizeSp = 11f,
+                    periodSizeSp = 10f,
+                    subjectSizeSp = 12f,
+                    classSizeSp = 10f,
+                    periodWidthDp = 34,
+                    showClass = true,
+                    maxRows = 4
                 )
                 else -> WidgetUi(
-                    rootPaddingDp = 8,
-                    teacherSizeSp = 13f,
-                    headerSizeSp = 10f,
-                    periodSizeSp = 9f,
-                    subjectSizeSp = 10f,
-                    classSizeSp = 9f,
-                    periodWidthDp = 32,
-                    rowTopBottomDp = 1,
-                    showClass = true
+                    mode = Mode.LARGE,
+                    rootPaddingH = 12,
+                    rootPaddingV = 10,
+                    teacherSizeSp = 15f,
+                    headerSizeSp = 11f,
+                    periodSizeSp = 10f,
+                    subjectSizeSp = 11f,
+                    classSizeSp = 10f,
+                    periodWidthDp = 34,
+                    showClass = true,
+                    maxRows = 7
                 )
             }
         }
@@ -149,17 +159,19 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             val summary = if (entries.isEmpty()) "$dayName · 수업 없음" else "$dayName · ${entries.size}시간"
             v.setTextViewText(R.id.widget_header, summary)
 
+            val visibleEntries = entries.take(ui.maxRows)
             val res = ctx.resources
             val pkg = ctx.packageName
-            for (p in 1..7) {
-                val rowId = res.getIdentifier("row_p$p", "id", pkg)
-                val periodId = res.getIdentifier("period_p$p", "id", pkg)
-                val subjectId = res.getIdentifier("subject_p$p", "id", pkg)
-                val classId = res.getIdentifier("class_p$p", "id", pkg)
-                val e = entries.find { it.period == p }
+            for (slot in 1..7) {
+                val rowId = res.getIdentifier("row_p$slot", "id", pkg)
+                val periodId = res.getIdentifier("period_p$slot", "id", pkg)
+                val subjectId = res.getIdentifier("subject_p$slot", "id", pkg)
+                val classId = res.getIdentifier("class_p$slot", "id", pkg)
+
+                val e = visibleEntries.getOrNull(slot - 1)
                 if (e != null) {
                     v.setViewVisibility(rowId, View.VISIBLE)
-                    v.setTextViewText(periodId, "${p}교시")
+                    v.setTextViewText(periodId, "${e.period}교시")
                     v.setTextViewText(subjectId, e.subject)
                     v.setTextViewText(classId, "${e.grade}-${e.ban}")
                     v.setViewVisibility(classId, if (ui.showClass) View.VISIBLE else View.GONE)
@@ -232,22 +244,21 @@ class TeacherTimetableWidget : AppWidgetProvider() {
         }
 
         private fun applySizing(v: RemoteViews, ctx: Context, ui: WidgetUi) {
-            v.setViewPadding(R.id.widget_root, ui.rootPaddingDp, ui.rootPaddingDp, ui.rootPaddingDp, ui.rootPaddingDp)
+            v.setViewPadding(R.id.widget_root, ui.rootPaddingH, ui.rootPaddingV, ui.rootPaddingH, ui.rootPaddingV)
             v.setTextViewTextSize(R.id.teacher_name, TypedValue.COMPLEX_UNIT_SP, ui.teacherSizeSp)
             v.setTextViewTextSize(R.id.widget_header, TypedValue.COMPLEX_UNIT_SP, ui.headerSizeSp)
 
             val res = ctx.resources
             val pkg = ctx.packageName
             for (p in 1..7) {
-                val rowId = res.getIdentifier("row_p$p", "id", pkg)
                 val periodId = res.getIdentifier("period_p$p", "id", pkg)
                 val subjectId = res.getIdentifier("subject_p$p", "id", pkg)
                 val classId = res.getIdentifier("class_p$p", "id", pkg)
-
-                v.setViewPadding(rowId, 0, ui.rowTopBottomDp, 0, ui.rowTopBottomDp)
                 v.setTextViewTextSize(periodId, TypedValue.COMPLEX_UNIT_SP, ui.periodSizeSp)
                 v.setTextViewTextSize(subjectId, TypedValue.COMPLEX_UNIT_SP, ui.subjectSizeSp)
-                v.setTextViewTextSize(classId, TypedValue.COMPLEX_UNIT_SP, ui.classSizeSp)
+                if (ui.classSizeSp > 0f) {
+                    v.setTextViewTextSize(classId, TypedValue.COMPLEX_UNIT_SP, ui.classSizeSp)
+                }
                 v.setInt(periodId, "setWidth", dpToPx(ctx, ui.periodWidthDp))
             }
         }
