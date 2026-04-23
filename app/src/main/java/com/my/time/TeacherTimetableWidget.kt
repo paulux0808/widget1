@@ -202,6 +202,7 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             v.setOnClickPendingIntent(R.id.teacher_name, configPi)
+            v.setOnClickPendingIntent(R.id.widget_root, configPi)
 
             val refreshIntent = Intent(ctx, TeacherTimetableWidget::class.java).apply {
                 action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -250,6 +251,7 @@ class TeacherTimetableWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             v.setOnClickPendingIntent(R.id.teacher_name, configPi)
+            v.setOnClickPendingIntent(R.id.widget_root, configPi)
             return v
         }
 

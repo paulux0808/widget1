@@ -22,12 +22,17 @@ class ConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setResult(RESULT_CANCELED)
         setContentView(R.layout.activity_config)
 
         widgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+
+        val canceledResult = Intent().putExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            widgetId
+        )
+        setResult(RESULT_CANCELED, canceledResult)
 
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish(); return

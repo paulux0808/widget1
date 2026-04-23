@@ -33,11 +33,13 @@
         android:textColor="#475569"
         android:textSize="10.5sp" />
 
-    <View
+    <TextView
+        android:id="@+id/divider_line"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginBottom="2dp"
-        android:background="#DCE6FF" />
+        android:background="#DCE6FF"
+        android:text="" />
 
     <LinearLayout
         android:id="@+id/schedule_container"
