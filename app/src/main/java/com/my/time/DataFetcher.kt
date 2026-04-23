@@ -115,8 +115,17 @@ object DataFetcher {
     private fun parseIntCell(cells: org.json.JSONArray, index: Int): Int? {
         val raw = cell(cells, index).replace(",", "").trim()
         if (raw.isEmpty()) return null
-        return raw.toIntOrNull()
-            ?: raw.toDoubleOrNull()?.toInt()
+
+        raw.toIntOrNull()?.let { return it }
+        raw.toDoubleOrNull()?.let { return it.toInt() }
+
+        // JS parseInt("3교시") -> 3 처럼 동작하게 맞춘다.
+        val leadingInt = Regex("""^[+-]?\d+""").find(raw)?.value
+        if (!leadingInt.isNullOrEmpty()) return leadingInt.toIntOrNull()
+
+        // 셀 서식 때문에 앞에 문자가 붙은 경우를 대비한 마지막 보정.
+        val anyInt = Regex("""[+-]?\d+""").find(raw)?.value
+        return anyInt?.toIntOrNull()
     }
 
     private fun normalizeDay(value: String): String {

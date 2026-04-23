@@ -62,7 +62,8 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             val classSizeSp: Float,
             val periodWidthDp: Int,
             val showClass: Boolean,
-            val maxRows: Int
+            val maxRows: Int,
+            val compactHeader: Boolean
         )
 
         fun updateWidget(ctx: Context, mgr: AppWidgetManager, id: Int) {
@@ -95,46 +96,51 @@ class TeacherTimetableWidget : AppWidgetProvider() {
         private fun computeUi(options: Bundle): WidgetUi {
             val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
             val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 90)
+            val isSmall = width <= 180 || height <= 160
+            val isMedium = width <= 250 || height <= 220
 
             return when {
-                height <= 120 || width <= 150 -> WidgetUi(
+                isSmall -> WidgetUi(
                     mode = Mode.SMALL,
-                    rootPaddingH = 6,
-                    rootPaddingV = 4,
-                    teacherSizeSp = 15f,
-                    headerSizeSp = 10f,
-                    periodSizeSp = 10f,
-                    subjectSizeSp = 12f,
+                    rootPaddingH = 4,
+                    rootPaddingV = 3,
+                    teacherSizeSp = 16.5f,
+                    headerSizeSp = 10.5f,
+                    periodSizeSp = 11f,
+                    subjectSizeSp = 13.5f,
                     classSizeSp = 0f,
-                    periodWidthDp = 30,
+                    periodWidthDp = 24,
                     showClass = false,
-                    maxRows = 2
+                    maxRows = 2,
+                    compactHeader = true
                 )
-                height <= 190 || width <= 240 -> WidgetUi(
+                isMedium -> WidgetUi(
                     mode = Mode.MEDIUM,
-                    rootPaddingH = 8,
-                    rootPaddingV = 6,
-                    teacherSizeSp = 15.5f,
-                    headerSizeSp = 11f,
-                    periodSizeSp = 10f,
-                    subjectSizeSp = 12f,
-                    classSizeSp = 10f,
-                    periodWidthDp = 30,
+                    rootPaddingH = 5,
+                    rootPaddingV = 4,
+                    teacherSizeSp = 16f,
+                    headerSizeSp = 10.5f,
+                    periodSizeSp = 10.5f,
+                    subjectSizeSp = 13f,
+                    classSizeSp = 9.5f,
+                    periodWidthDp = 26,
                     showClass = true,
-                    maxRows = 4
+                    maxRows = 4,
+                    compactHeader = false
                 )
                 else -> WidgetUi(
                     mode = Mode.LARGE,
-                    rootPaddingH = 8,
-                    rootPaddingV = 6,
-                    teacherSizeSp = 15.5f,
+                    rootPaddingH = 6,
+                    rootPaddingV = 5,
+                    teacherSizeSp = 16f,
                     headerSizeSp = 11f,
-                    periodSizeSp = 10f,
-                    subjectSizeSp = 12f,
-                    classSizeSp = 10f,
-                    periodWidthDp = 30,
+                    periodSizeSp = 10.5f,
+                    subjectSizeSp = 13f,
+                    classSizeSp = 9.5f,
+                    periodWidthDp = 28,
                     showClass = true,
-                    maxRows = 7
+                    maxRows = 6,
+                    compactHeader = false
                 )
             }
         }
@@ -156,7 +162,11 @@ class TeacherTimetableWidget : AppWidgetProvider() {
             }
 
             v.setTextViewText(R.id.teacher_name, teacher)
-            val summary = if (entries.isEmpty()) "$dayName · 수업 없음" else "$dayName · ${entries.size}시간"
+            val summary = if (entries.isEmpty()) {
+                if (ui.compactHeader) "$day · 없음" else "$dayName · 수업 없음"
+            } else {
+                if (ui.compactHeader) "$day · ${entries.size}시간" else "$dayName · ${entries.size}시간"
+            }
             v.setTextViewText(R.id.widget_header, summary)
 
             val visibleEntries = entries.take(ui.maxRows)
